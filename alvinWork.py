@@ -10,8 +10,15 @@ with the ability to overlay randomly generated objects over it.
 import cv2
 import numpy
 
-GRAVITY = 2
+GRAVITY = 4
 NUMFRUITS = 3
+FONT = cv2.FONT_HERSHEY_COMPLEX
+FONT_SIZE = 1.5
+
+# These determine the positions to generate "exploded" bits of the fruit
+EXX = [1, 0.70711, 0, -0.70711, -1, -0.70711, 0, 0.70711]
+EXY = [0, 0.70711, 1, 0.70711, 0, -0.70711, -1, -0.70711]
+EXV = 8
 
 class Fruit:
     def __init__(this, radius, color, xPos, yPos, xVel, yVel):
@@ -32,7 +39,24 @@ class Fruit:
         
         return this.xPos >= 0 and this.xPos <= xBound and this.yPos <= yBound
     
-
+    def explode(this, explosions):
+        exRad = int(this.radius/2)
+        explosions.append(Fruit(exRad, this.color, this.xPos, this.yPos, this.xVel, this.yVel))
+        for i in range(8):
+            explosions.append(Fruit(exRad, this.color, this.xPos + int(EXX[i]*exRad), this.yPos + int(EXY[i]*exRad), this.xVel + int(EXX[i]*EXV), this.yVel + int(EXY[i]*EXV)))
+    
+    def isAbove(this, yVal):
+        return this.yPos < yVal
+    
+class Text:
+    def __init__(this, pos, color, text):
+        this.pos = pos
+        this.color = color
+        this.text = text
+        
+    def write(this, frame):
+        cv2.putText(frame, this.text,this.pos, FONT, FONT_SIZE, this.color, 2, cv2.LINE_AA)
+        
 """ ACTUAL CODE STARTS HERE """
 
 # We open a new window and open access to the video camera
@@ -52,6 +76,7 @@ y0 = int(vidFeed.get(4)) # Gets the length of the video feed
 # We instantiate an empty list of fruit, to be populated in the following
 # for-statement.
 fruits = []
+explodedBits = []
 
 for count in range(NUMFRUITS):
     # Generates reasonable random values for the initialization of each fruit
@@ -73,6 +98,19 @@ while gotFrame:
         # we draw it on screen
         fruits[count].draw(frame)
         
+        # Just to test out explosions, if the fruit reaches halfway, it explodes
+        if fruits[count].isAbove(y0/2):
+            fruits[count].explode(explodedBits)
+            
+            # generates a new fruit to replace it
+            radius = numpy.random.randint(20, 70)
+            color = (numpy.random.randint(255), numpy.random.randint(255), numpy.random.randint(255))
+            xPos = numpy.random.randint(x0)
+            yPos = y0
+            xVel = int(((x0/2)-xPos)//10)
+            yVel = -numpy.random.randint(y0//20, y0//10)
+            fruits[count] = Fruit(radius, color, xPos, yPos, xVel, yVel)
+        
         # and increment the physics. If the fruit goes offscreen, we remove it
         # and implement another randomly generated fruit in its place
         if not fruits[count].doPhysics(x0, y0):
@@ -84,6 +122,12 @@ while gotFrame:
             xVel = int(((x0/2)-xPos)//10)
             yVel = -numpy.random.randint(y0//20, y0//10)
             fruits[count] = Fruit(radius, color, xPos, yPos, xVel, yVel)
+
+    for exBit in explodedBits:
+        exBit.draw(frame)
+        if not exBit.doPhysics(x0, y0):
+            explodedBits.remove(exBit)
+
 
     # Once all the fruits have been drawn on the frame, we display the frame
     cv2.imshow("Fruit Ninja", frame)
