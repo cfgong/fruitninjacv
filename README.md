@@ -15,3 +15,7 @@ FRUIT NINJA:
 	- Finger tracking (implemented)
 	- Object intersection detection for fruit and fingertip (includes score keeping)
 
+packages:
+- cv2 (pip install opencv-python)
+- opencv-contrib (pip install opencv-contrib-python)
+
