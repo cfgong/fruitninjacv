@@ -7,6 +7,12 @@ Created on Sun Dec  2 13:22:56 2018
 """
 import cv2
 import numpy
+import morophological_operators as mo
+from ccl import CCL
+
+STALL = 2
+THRESH = 0.1
+SMALL_SCALE = 16
 
 def drawRect(frame, x0, y0):
     cv2.rectangle(frame,(int(x0*3/7),int(y0/3)),(int(x0*4/7),int(y0*2/3)),(0,255,0),3)
@@ -47,7 +53,7 @@ def makeHisto(frame, x0, y0):
             
             RGnorm[rNorm, gNorm] = RGnorm[rNorm, gNorm] + 1
     
-    threshold = numpy.max(RGnorm)/10
+    threshold = numpy.max(RGnorm)*THRESH
     
     nRGbits = numpy.zeros((50, 50))
     
@@ -75,6 +81,69 @@ def findSkin(frame, histBits):
     
     return skinBits
                 
+def processSkin(frame):
+    frame = CCL(frame, 3)
+    #noiseSE = numpy.ones((2, 2))
+    '''
+    SE = numpy.array([[0, 0, 1, 1, 0, 0],
+                      [0, 1, 1, 1, 1, 0],
+                      [1, 1, 1, 1, 1, 1],
+                      [1, 1, 1, 1, 1, 1],
+                      [0, 1, 1, 1, 1, 0],
+                      [0, 0, 1, 1, 0, 0]])
+    '''
+    SE = numpy.ones((4, 4))
+    #frame = mo.Closing(frame, noiseSE)
+    #frame = mo.Erosion(frame, noiseSE)
+    #frame = mo.Dilation(frame, SE)
+    #frame = mo.Closing(frame, SE)
+    #frame = mo.Erosion(frame, SE)
+    frame = mo.Closing(frame, SE)
+    frame = CCL(frame, 40)
+    return frame
+
+def findCenter(frame):
+    x1, y1 = frame.shape
+    
+    xCum = 0
+    yCum = 0
+    numPix = 0
+    
+    for i in range(x1):
+        for j in range(y1):
+            if frame[i, j] != 0:
+                xCum += i
+                yCum += j
+                numPix += 1
+    
+    if numPix != 0:
+        return [int(xCum/numPix), int(yCum/numPix)]
+    else:
+        return [int(x1/2), int(y1/2)]
+    
+def findFurthest(frame, center):
+    x1, y1 = frame.shape
+    
+    maxPoint = [0, 0]
+    maxDist = 0
+    
+    for i in range(center[0] - 2):
+        for j in range(y1):
+            if frame[i, j] != 0 and ((i - center[0])^2 + (j - center[1])^2) > maxDist:
+                maxPoint = [i, j]
+                maxDist = ((i - center[0])^2 + (j - center[1])^2)
+    
+    return maxPoint
+
+def findHighest(frame):
+    x1, y1 = frame.shape
+    
+    for i in range(x1):
+        for j in range(y1):
+            if frame[i, j] != 0:
+                return [i, j]
+
+    return [0, 0]
 
 # We open a new window and open access to the video camera
 cv2.namedWindow("Finger Detection")
@@ -106,7 +175,7 @@ while gotFrame and not gotHisto:
     cv2.imshow("Small Frame", smallFrame)
     
     # Then, pause for 10 ms to see if we entered an interrupt key or not
-    key = cv2.waitKey(10)
+    key = cv2.waitKey(STALL)
     if key == ord('q'): # Exit on 'q'
         gotFrame = False
     elif key == ord('h'): # Create skin histogram on 'h'
@@ -119,12 +188,25 @@ while gotFrame and not gotHisto:
 # This is after we got a histogram. Then we actually start finger detection
 while gotFrame:
     frame = cv2.flip(frame, 1)
-    smallFrame = cv2.resize(frame, (int(x0/8), int(y0/8)))
+    smallFrame = cv2.resize(frame, (int(x0/SMALL_SCALE), int(y0/SMALL_SCALE)))
     
-    smallFrame = findSkin(smallFrame, histBits)
+    skinFrame = findSkin(smallFrame, histBits)
+    cleanSkin = processSkin(skinFrame)
+    center = findCenter(cleanSkin)
+    fingerTip = findFurthest(cleanSkin, center)
+    highest = findHighest(cleanSkin)
+    
+    cv2.circle(frame,(center[1]*SMALL_SCALE, center[0]*SMALL_SCALE), 10, (0,0,255), -1)
+    cv2.circle(frame,(fingerTip[1]*SMALL_SCALE, fingerTip[0]*SMALL_SCALE), 10, (255,0,0), -1)
+    cv2.circle(frame,(highest[1]*SMALL_SCALE, highest[0]*SMALL_SCALE), 10, (0,255,0), -1)
     
     cv2.imshow("Finger Detection", frame)
     cv2.imshow("Small Frame", smallFrame)
+    cv2.imshow("Skin Frame", skinFrame)
+    cv2.imshow("Clean Skin", cleanSkin)
+    
+    if cv2.waitKey(STALL) == ord('q'):
+        gotFrame = False
     
     # After displaying the frame, we grab a new frame from the video feed
     gotFrame, frame = vidFeed.read()
