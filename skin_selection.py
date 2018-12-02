@@ -35,8 +35,8 @@ while True:
         # Draw the contour on the source image
         for i, c in enumerate(contours):
             area = cv2.contourArea(c)
-            if area > 100:
-                cv2.drawContours(frame, contours, i, (0, 255, 0), 3)
+            # if area > 1000:
+            cv2.drawContours(frame, contours, i, (0, 255, 0), 3)
                 
     # show the output frame
     cv2.imshow("Frame", frame)
@@ -49,14 +49,14 @@ while True:
         # sure you press ENTER or SPACE after selecting the ROI)
         r = cv2.selectROI("Frame", frame, fromCenter=False,
             showCrosshair=True)
-        
-        skin = frame[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
-        # Convert image to YCrCb
-        imageYCrCb = cv2.cvtColor(frame,cv2.COLOR_BGR2YCR_CB)
-        skinSample = cv2.cvtColor(skin,cv2.COLOR_BGR2YCR_CB)
-        
-        min_YCrCb = np.min(skinSample, axis = 1)[0] 
-        max_YCrCb = np.max(skinSample, axis = 1)[0] 
+        if max(r) > 0: # make sure a box was actually selected or else we will get an error
+            skin = frame[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
+            # Convert image to YCrCb
+            imageYCrCb = cv2.cvtColor(frame,cv2.COLOR_BGR2YCR_CB)
+            skinSample = cv2.cvtColor(skin,cv2.COLOR_BGR2YCR_CB)
+            
+            min_YCrCb = np.min(skinSample, axis = 1)[0] 
+            max_YCrCb = np.max(skinSample, axis = 1)[0] 
     # if the `q` key was pressed, break from the loop
     elif key == ord("q"):
         break
