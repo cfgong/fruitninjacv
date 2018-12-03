@@ -145,75 +145,85 @@ def findHighest(frame):
 
     return [0, 0]
 
-# We open a new window and open access to the video camera
-cv2.namedWindow("Finger Detection")
-vidFeed = cv2.VideoCapture(0)
-
-# If we have successfully connected to the webcam, we grab a frame
-if vidFeed.isOpened():
-    gotFrame, frame = vidFeed.read()
-# Otherwise, we cry
-else:
-    gotFrame = False
-
-x0 = int(vidFeed.get(3)) # Gets the width of the video feed
-y0 = int(vidFeed.get(4)) # Gets the length of the video feed
-
-# We start off without a histogram
-gotHisto = False
-histBits = None
-
-# This is the setup time, when we have not yet gotten a histogram yet
-while gotFrame and not gotHisto:
-    frame = cv2.flip(frame, 1)
-    smallFrame = cv2.resize(frame, (int(x0/8), int(y0/8)))
-    
-    drawRect(frame, x0, y0)
-    
-    # Once all the fruits have been drawn on the frame, we display the frame
-    cv2.imshow("Finger Detection", frame)
-    cv2.imshow("Small Frame", smallFrame)
-    
-    # Then, pause for 10 ms to see if we entered an interrupt key or not
-    key = cv2.waitKey(STALL)
-    if key == ord('q'): # Exit on 'q'
-        gotFrame = False
-    elif key == ord('h'): # Create skin histogram on 'h'
-        histBits = makeHisto(frame, x0, y0)
-        gotHisto = True
-        
-    # After displaying the frame, we grab a new frame from the video feed
-    gotFrame, frame = vidFeed.read()
-
-# This is after we got a histogram. Then we actually start finger detection
-while gotFrame:
-    frame = cv2.flip(frame, 1)
+def getFingerTip(frame, x0, y0, histBits):
     smallFrame = cv2.resize(frame, (int(x0/SMALL_SCALE), int(y0/SMALL_SCALE)))
-    
+        
     skinFrame = findSkin(smallFrame, histBits)
     cleanSkin = processSkin(skinFrame)
-    center = findCenter(cleanSkin)
-    fingerTip = findFurthest(cleanSkin, center)
     highest = findHighest(cleanSkin)
     
-    cv2.circle(frame,(center[1]*SMALL_SCALE, center[0]*SMALL_SCALE), 10, (0,0,255), -1)
-    cv2.circle(frame,(fingerTip[1]*SMALL_SCALE, fingerTip[0]*SMALL_SCALE), 10, (255,0,0), -1)
-    cv2.circle(frame,(highest[1]*SMALL_SCALE, highest[0]*SMALL_SCALE), 10, (0,255,0), -1)
+    return [highest[0]*SMALL_SCALE, highest[1]*SMALL_SCALE]
+
+if __name__ == "__main__":
+    # We open a new window and open access to the video camera
+    cv2.namedWindow("Finger Detection")
+    vidFeed = cv2.VideoCapture(0)
     
-    cv2.imshow("Finger Detection", frame)
-    cv2.imshow("Small Frame", smallFrame)
-    cv2.imshow("Skin Frame", skinFrame)
-    cv2.imshow("Clean Skin", cleanSkin)
-    
-    if cv2.waitKey(STALL) == ord('q'):
+    # If we have successfully connected to the webcam, we grab a frame
+    if vidFeed.isOpened():
+        gotFrame, frame = vidFeed.read()
+    # Otherwise, we cry
+    else:
         gotFrame = False
     
-    # After displaying the frame, we grab a new frame from the video feed
-    gotFrame, frame = vidFeed.read()
-
-# Once an interrupt key is entered, or we fail to get another screen, 
-# we print some statements, release the video feed, and close the window.
-print("exited the loop")
-vidFeed.release()
-print("released video feed")
-cv2.destroyAllWindows # For some reason python always crashes here
+    x0 = int(vidFeed.get(3)) # Gets the width of the video feed
+    y0 = int(vidFeed.get(4)) # Gets the length of the video feed
+    
+    # We start off without a histogram
+    gotHisto = False
+    histBits = None
+    
+    # This is the setup time, when we have not yet gotten a histogram yet
+    while gotFrame and not gotHisto:
+        frame = cv2.flip(frame, 1)
+        smallFrame = cv2.resize(frame, (int(x0/8), int(y0/8)))
+        
+        drawRect(frame, x0, y0)
+        
+        # Once all the fruits have been drawn on the frame, we display the frame
+        cv2.imshow("Finger Detection", frame)
+        cv2.imshow("Small Frame", smallFrame)
+        
+        # Then, pause for 10 ms to see if we entered an interrupt key or not
+        key = cv2.waitKey(STALL)
+        if key == ord('q'): # Exit on 'q'
+            gotFrame = False
+        elif key == ord('h'): # Create skin histogram on 'h'
+            histBits = makeHisto(frame, x0, y0)
+            gotHisto = True
+            
+        # After displaying the frame, we grab a new frame from the video feed
+        gotFrame, frame = vidFeed.read()
+    
+    # This is after we got a histogram. Then we actually start finger detection
+    while gotFrame:
+        frame = cv2.flip(frame, 1)
+        smallFrame = cv2.resize(frame, (int(x0/SMALL_SCALE), int(y0/SMALL_SCALE)))
+        
+        skinFrame = findSkin(smallFrame, histBits)
+        cleanSkin = processSkin(skinFrame)
+        center = findCenter(cleanSkin)
+        fingerTip = findFurthest(cleanSkin, center)
+        highest = findHighest(cleanSkin)
+        
+        cv2.circle(frame,(center[1]*SMALL_SCALE, center[0]*SMALL_SCALE), 10, (0,0,255), -1)
+        cv2.circle(frame,(fingerTip[1]*SMALL_SCALE, fingerTip[0]*SMALL_SCALE), 10, (255,0,0), -1)
+        cv2.circle(frame,(highest[1]*SMALL_SCALE, highest[0]*SMALL_SCALE), 10, (0,255,0), -1)
+        
+        cv2.imshow("Finger Detection", frame)
+        cv2.imshow("Small Frame", smallFrame)
+        cv2.imshow("Skin Frame", skinFrame)
+        cv2.imshow("Clean Skin", cleanSkin)
+        
+        if cv2.waitKey(STALL) == ord('q'):
+            gotFrame = False
+        
+        # After displaying the frame, we grab a new frame from the video feed
+        gotFrame, frame = vidFeed.read()
+    
+    # Once an interrupt key is entered, or we fail to get another screen, 
+    # we print some statements, release the video feed, and close the window.
+    print("exited the loop")
+    vidFeed.release()
+    print("released video feed")
+    cv2.destroyAllWindows # For some reason python always crashes here
