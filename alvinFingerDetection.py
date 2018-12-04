@@ -158,14 +158,14 @@ if __name__ == "__main__":
     # We open a new window and open access to the video camera
     cv2.namedWindow("Finger Detection")
     vidFeed = cv2.VideoCapture(0)
-    
+    gotFrame = True
     # If we have successfully connected to the webcam, we grab a frame
     if vidFeed.isOpened():
         gotFrame, frame = vidFeed.read()
     # Otherwise, we cry
     else:
         gotFrame = False
-    
+
     x0 = int(vidFeed.get(3)) # Gets the width of the video feed
     y0 = int(vidFeed.get(4)) # Gets the length of the video feed
     
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         # Then, pause for 10 ms to see if we entered an interrupt key or not
         key = cv2.waitKey(STALL)
         if key == ord('q'): # Exit on 'q'
-            gotFrame = False
+            break
         elif key == ord('h'): # Create skin histogram on 'h'
             histBits = makeHisto(frame, x0, y0)
             gotHisto = True
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         cv2.imshow("Clean Skin", cleanSkin)
         
         if cv2.waitKey(STALL) == ord('q'):
-            gotFrame = False
+            break
         
         # After displaying the frame, we grab a new frame from the video feed
         gotFrame, frame = vidFeed.read()
@@ -226,4 +226,4 @@ if __name__ == "__main__":
     print("exited the loop")
     vidFeed.release()
     print("released video feed")
-    cv2.destroyAllWindows # For some reason python always crashes here
+    cv2.destroyAllWindows() # For some reason python always crashes here
