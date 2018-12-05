@@ -201,6 +201,9 @@ for curLevel in range(len(levels)):
         # Writes the game over message
         gO.Text((int(x0/2)-100, int(y0/2)-25), (0, 0, 0), "GAME OVER").write(frame)
         cv2.imshow("Fruit Ninja", frame)
+        
+        if cv2.waitKey(STALL) == ord('q'): # Exit on q
+            break
     
     # Otherwise, we complete the falling animations and continue onto the next level
     while fruits and bombs and explodedBits and gotFrame:
