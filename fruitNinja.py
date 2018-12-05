@@ -77,9 +77,9 @@ for curLevel in range(len(levels)):
     explodedBits = []
 
     # We generate the text for this level
-    texts.append(gO.Text((10, 50), (0, 0, 0), "Lives: "))
-    texts.append(gO.Text((int(x0/2)-100, 50), (0, 0, 0), "Level: " + str(curLevel)))
-    texts.append(gO.Text((x0 - 300, 50), (0, 0, 0), "Score: "+str(score)))
+    texts.append(gO.Text((10, 50), (0, 255, 0), "Lives: "))
+    texts.append(gO.Text((int(x0/2)-100, 50), (0, 255, 0), "Level: " + str(curLevel)))
+    texts.append(gO.Text((x0 - 300, 50), (0, 255, 0), "Score: "+str(score)))
     
     # We generate all of the fruits in this level
     for count in range(levels[curLevel].numFruits):
@@ -127,7 +127,7 @@ for curLevel in range(len(levels)):
                 
                 # Update the score and display the new score
                 score += levels[curLevel].pointsPerFruit
-                texts[2] = gO.Text((x0 - 300, 50), (0, 0, 0), "Score: "+str(score))
+                texts[2] = gO.Text((x0 - 300, 50), (0, 255, 0), "Score: "+str(score))
                 
                 # Generate a new fruit to replace it
                 fruits[count] = gO.randomFruit(x0, y0)
