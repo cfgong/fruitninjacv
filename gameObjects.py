@@ -36,6 +36,11 @@ class Fruit:
         this.yPos += this.yVel
         this.yVel += GRAVITY
         
+        if this.color == (0, 0, 0):
+            this.color == (0, 0, 255)
+        elif this.color == (0, 0, 255):
+            this.color == (0, 0, 0)
+        
         return this.xPos >= 0 and this.xPos <= xBound and this.yPos <= yBound
     
     def explode(this, explosions):
