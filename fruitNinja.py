@@ -8,7 +8,6 @@ with the ability to overlay randomly generated objects over it.
 """
 
 import cv2
-import numpy
 import alvinFingerDetection as aFD
 import gameObjects as gO
 
@@ -78,9 +77,9 @@ for curLevel in range(len(levels)):
     explodedBits = []
 
     # We generate the text for this level
-    texts.append(gO.Text((10, 10), (0, 0, 0), "Lives: "))
-    texts.append(gO.Text((int(x0/2)-20, 10), (0, 0, 0), "Level: " + str(curLevel)))
-    texts.append(gO.Text((x0 - 50, 10), (0, 0, 0), "Score: "+str(score)))
+    texts.append(gO.Text((10, 50), (0, 0, 0), "Lives: "))
+    texts.append(gO.Text((int(x0/2)-100, 50), (0, 0, 0), "Level: " + str(curLevel)))
+    texts.append(gO.Text((x0 - 300, 50), (0, 0, 0), "Score: "+str(score)))
     
     # We generate all of the fruits in this level
     for count in range(levels[curLevel].numFruits):
@@ -95,8 +94,8 @@ for curLevel in range(len(levels)):
         # Flips the frame horizontally so it's a mirror image. Makes sense while
         # facing the screen.
         frame = cv2.flip(frame, 1)
-        for text in texts:
-            text.write(frame)
+        
+        gO.Text((int(x0/2)-100, int(y0/2)-25), (0, 0, 0), "LEVEL "+str(curLevel)).write(frame)
         
         cv2.imshow("Fruit Ninja", frame)
         startPause += 1
@@ -108,7 +107,8 @@ for curLevel in range(len(levels)):
             gotFrame = False
             break
     
-    while gotFrame and not gameOver:
+    levelFrames = 0
+    while gotFrame and not gameOver and levelFrames < levels[curLevel].numFrames:
         # Flips the frame horizontally so it's a mirror image. Makes sense while
         # facing the screen.
         frame = cv2.flip(frame, 1)
@@ -127,7 +127,7 @@ for curLevel in range(len(levels)):
                 
                 # Update the score and display the new score
                 score += levels[curLevel].pointsPerFruit
-                texts[2] = gO.Text((x0 - 50, 10), (0, 0, 0), "Score: "+str(score))
+                texts[2] = gO.Text((x0 - 300, 50), (0, 0, 0), "Score: "+str(score))
                 
                 # Generate a new fruit to replace it
                 fruits[count] = gO.randomFruit(x0, y0)
@@ -162,8 +162,11 @@ for curLevel in range(len(levels)):
         for text in texts:
             text.write(frame)
             
-            ''' CONTINUE FROM HERE '''
+        # Display the lives we have
+        for count in range(lives):
+            cv2.circle(frame, (175 + count*50, 35), 20, (0, 0, 255), -1)
         
+        # Let exploded bits continue falling down
         for exBit in explodedBits:
             exBit.draw(frame)
             if not exBit.doPhysics(x0, y0):
@@ -175,19 +178,73 @@ for curLevel in range(len(levels)):
         # Once all the fruits have been drawn on the frame, we display the frame
         cv2.imshow("Fruit Ninja", frame)
         
+        # Increment the frame counter
+        levelFrames += 1
+        
         # After displaying the frame, we grab a new frame from the video feed
         gotFrame, frame = vidFeed.read()
         
-        # Then, pause for 10 ms to see if we entered an interrupt key or not
+        # Then, pause to see if we entered an interrupt key or not
+        if cv2.waitKey(STALL) == ord('q'): # Exit on q
+            break
+        
+    # If the player loses
+    while gameOver:
+        # Flips the frame horizontally so it's a mirror image. Makes sense while
+        # facing the screen.
+        frame = cv2.flip(frame, 1)
+        
+        # Write all of our text on the screen
+        for text in texts:
+            text.write(frame)
+        
+        # Writes the game over message
+        gO.Text((int(x0/2)-100, int(y0/2)-25), (0, 0, 0), "GAME OVER").write(frame)
+        cv2.imshow("Fruit Ninja", frame)
+    
+    # Otherwise, we complete the falling animations and continue onto the next level
+    while fruits and bombs and explodedBits and gotFrame:
+        # Flips the frame horizontally so it's a mirror image. Makes sense while
+        # facing the screen.
+        frame = cv2.flip(frame, 1)
+        
+        # Write all of our text on the screen
+        for text in texts:
+            text.write(frame)
+            
+        # Display the lives we have
+        for count in range(lives):
+            cv2.circle(frame, (175 + count*50, 35), 20, (0, 0, 255), -1)
+        
+        # Draws all the falling pieces
+        for fruit in fruits:
+            fruit.draw(frame)
+            if not fruit.doPhysics(x0, y0):
+                fruits.remove(fruit)
+
+        for bomb in bombs:
+            bomb.draw(frame)
+            if not bomb.doPhysics(x0, y0):
+                bombs.remove(bomb)
+
+        for exBit in explodedBits:
+            exBit.draw(frame)
+            if not exBit.doPhysics(x0, y0):
+                explodedBits.remove(exBit)
+        
+        # After displaying the frame, we grab a new frame from the video feed
+        gotFrame, frame = vidFeed.read()
+        
+        # Then, pause to see if we entered an interrupt key or not
         if cv2.waitKey(STALL) == ord('q'): # Exit on q
             break
     
-    # Once an interrupt key is entered, or we fail to get another screen, 
-    # we print some statements, release the video feed, and close the window.
-    print("exited the loop")
-    vidFeed.release()
-    print("released video feed")
-    cv2.destroyAllWindows # For some reason python always crashes here
+# Once an interrupt key is entered, or we fail to get another screen, 
+# we print some statements, release the video feed, and close the window.
+print("exited the loop")
+vidFeed.release()
+print("released video feed")
+cv2.destroyAllWindows # For some reason python always crashes here
 
 
 

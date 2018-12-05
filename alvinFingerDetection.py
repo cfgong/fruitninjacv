@@ -29,7 +29,7 @@ def getnRG(r, g, b):
 
 def makeHisto(frame, x0, y0):
     crop_img = frame[int(y0/3)+3:int(y0*2/3)-3, int(x0*3/7)+3:int(x0*4/7)-3]
-    cv2.imshow("cropped", crop_img)
+    #cv2.imshow("cropped", crop_img)
 
     #print(crop_img)
 
@@ -153,8 +153,8 @@ def getFingerTip(frame, x0, y0, histBits):
         
     skinFrame = findSkin(smallFrame, histBits)
     cleanSkin = processSkin(skinFrame)
-    #highest = findHighest(cleanSkin)
-    highest = findContourTip(cleanSkin)
+    highest = findHighest(cleanSkin)
+    #highest = findContourTip(cleanSkin)
     
     return [highest[0]*SMALL_SCALE, highest[1]*SMALL_SCALE]
 
