@@ -145,12 +145,16 @@ def findHighest(frame):
 
     return [0, 0]
 
+def findContourTip(cleanSkin):
+    ''' @ Crystal '''
+
 def getFingerTip(frame, x0, y0, histBits):
     smallFrame = cv2.resize(frame, (int(x0/SMALL_SCALE), int(y0/SMALL_SCALE)))
         
     skinFrame = findSkin(smallFrame, histBits)
     cleanSkin = processSkin(skinFrame)
-    highest = findHighest(cleanSkin)
+    #highest = findHighest(cleanSkin)
+    highest = findContourTip(cleanSkin)
     
     return [highest[0]*SMALL_SCALE, highest[1]*SMALL_SCALE]
 

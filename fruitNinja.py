@@ -12,7 +12,10 @@ import numpy
 import alvinFingerDetection as aFD
 import gameObjects as gO
 
+''' First we set up the webcam feed and grab a histogram for skin detection '''
+
 STALL = 5
+LEVEL_START_PAUSE = 10
 
 # We open a new window and open access to the video camera
 cv2.namedWindow("Fruit Ninja")
@@ -28,6 +31,32 @@ else:
 x0 = int(vidFeed.get(3)) # Gets the width of the video feed
 y0 = int(vidFeed.get(4)) # Gets the length of the video feed
 
+# We generate our skin-tone histogram here
+gotHisto = False
+histBits = None
+    
+# This is the setup time, when we have not yet gotten a histogram yet
+while gotFrame and not gotHisto:
+    frame = cv2.flip(frame, 1)
+    
+    aFD.drawRect(frame, x0, y0)
+        
+    # Once all the fruits have been drawn on the frame, we display the frame
+    cv2.imshow("Fruit Ninja", frame)
+        
+    # Then, pause for 10 ms to see if we entered an interrupt key or not
+    key = cv2.waitKey(STALL)
+    if key == ord('q'): # Exit on 'q'
+        break
+    elif key == ord('h'): # Create skin histogram on 'h'
+        histBits = aFD.makeHisto(frame, x0, y0)
+        gotHisto = True
+        
+    # After displaying the frame, we grab a new frame from the video feed
+    gotFrame, frame = vidFeed.read()
+
+''' Now we are ready to begin our gameplay '''
+
 # Here we instantiate our levels:
 levels = []
 levels.append(gO.Level(1, 2, 0, 100))
@@ -35,45 +64,51 @@ levels.append(gO.Level(3, 5, 0, 100))
 levels.append(gO.Level(3, 5, 1, 100))
 levels.append(gO.Level(5, 7, 3, 200))
 
-# We instantiate an empty list of fruit, to be populated in the following
-# for-statement.
-fruits = []
-bombs = []
-explodedBits = []
+# We instantiate our score and our lives
+score = 0
+lives = 3
+gameOver = False
 
+# For each of the levels, we do game stuff
 for curLevel in range(len(levels)):
+    # We instantiate our game objects
+    texts = []
+    fruits = []
+    bombs = []
+    explodedBits = []
+
+    # We generate the text for this level
+    texts.append(gO.Text((10, 10), (0, 0, 0), "Lives: "))
+    texts.append(gO.Text((int(x0/2)-20, 10), (0, 0, 0), "Level: " + str(curLevel)))
+    texts.append(gO.Text((x0 - 50, 10), (0, 0, 0), "Score: "+str(score)))
+    
     # We generate all of the fruits in this level
     for count in range(levels[curLevel].numFruits):
         fruits.append(gO.randomFruit(x0, y0))
-        
+    
+    # We generate all of the bombs in this level
     for count in range(levels[curLevel].numBombs):
         bombs.append(gO.randomBomb(x0, y0))
     
-    # We start off without a histogram
-    gotHisto = False
-    histBits = None
-        
-    # This is the setup time, when we have not yet gotten a histogram yet
-    while gotFrame and not gotHisto:
+    startPause = 0
+    while (startPause < LEVEL_START_PAUSE) and gotFrame:
+        # Flips the frame horizontally so it's a mirror image. Makes sense while
+        # facing the screen.
         frame = cv2.flip(frame, 1)
+        for text in texts:
+            text.write(frame)
         
-        aFD.drawRect(frame, x0, y0)
-            
-        # Once all the fruits have been drawn on the frame, we display the frame
         cv2.imshow("Fruit Ninja", frame)
-            
-        # Then, pause for 10 ms to see if we entered an interrupt key or not
-        key = cv2.waitKey(STALL)
-        if key == ord('q'): # Exit on 'q'
-            break
-        elif key == ord('h'): # Create skin histogram on 'h'
-            histBits = aFD.makeHisto(frame, x0, y0)
-            gotHisto = True
-            
+        startPause += 1
+        
         # After displaying the frame, we grab a new frame from the video feed
         gotFrame, frame = vidFeed.read()
+        # Then, pause for 10 ms to see if we entered an interrupt key or not
+        if cv2.waitKey(STALL) == ord('q'): # Exit on q
+            gotFrame = False
+            break
     
-    while gotFrame:
+    while gotFrame and not gameOver:
         # Flips the frame horizontally so it's a mirror image. Makes sense while
         # facing the screen.
         frame = cv2.flip(frame, 1)
@@ -82,35 +117,53 @@ for curLevel in range(len(levels)):
         fingerTip = aFD.getFingerTip(frame, x0, y0, histBits)
         
         # For each fruit we have,
-        for count in range(NUMFRUITS):
+        for count in range(len(fruits)):
             # we draw it on screen
             fruits[count].draw(frame)
             
-            # Just to test out explosions, if the fruit reaches halfway, it explodes
+            # If our fintertip intersects with the fruit, we explode the fruit
             if fruits[count].intersects(fingerTip):
                 fruits[count].explode(explodedBits)
                 
-                # generates a new fruit to replace it
-                radius = numpy.random.randint(20, 70)
-                color = (numpy.random.randint(255), numpy.random.randint(255), numpy.random.randint(255))
-                xPos = numpy.random.randint(x0)
-                yPos = y0
-                xVel = int(((x0/2)-xPos)//10)
-                yVel = -numpy.random.randint(y0//20, y0//10)
-                fruits[count] = Fruit(radius, color, xPos, yPos, xVel, yVel)
+                # Update the score and display the new score
+                score += levels[curLevel].pointsPerFruit
+                texts[2] = gO.Text((x0 - 50, 10), (0, 0, 0), "Score: "+str(score))
+                
+                # Generate a new fruit to replace it
+                fruits[count] = gO.randomFruit(x0, y0)
             
             # and increment the physics. If the fruit goes offscreen, we remove it
             # and implement another randomly generated fruit in its place
             if not fruits[count].doPhysics(x0, y0):
-                #print("a fruit died")
-                radius = numpy.random.randint(20, 70)
-                color = (numpy.random.randint(255), numpy.random.randint(255), numpy.random.randint(255))
-                xPos = numpy.random.randint(x0)
-                yPos = y0
-                xVel = int(((x0/2)-xPos)//10)
-                yVel = -numpy.random.randint(y0//20, y0//10)
-                fruits[count] = Fruit(radius, color, xPos, yPos, xVel, yVel)
-    
+                fruits[count] = gO.randomFruit(x0, y0)
+        
+        # For each bomb we have,
+        for count in range(len(bombs)):
+            # we draw it on screen
+            bombs[count].draw(frame)
+            
+            # If our fingertip intersects with the bomb, we explode the bomb
+            if bombs[count].intersects(fingerTip):
+                bombs[count].explode(explodedBits)
+                
+                # Update the number of lives and checks if you are dead
+                lives -= 1
+                if lives <= 0:
+                    gameOver = True
+                
+                # Generates a new bomb to replace it
+                bombs[count] = gO.randomBomb(x0, y0)
+            
+            # and increment the physics
+            if not bombs[count].doPhysics(x0, y0):
+                bombs[count] = gO.randomBomb(x0, y0)
+        
+        # Write all of our text on the screen
+        for text in texts:
+            text.write(frame)
+            
+            ''' CONTINUE FROM HERE '''
+        
         for exBit in explodedBits:
             exBit.draw(frame)
             if not exBit.doPhysics(x0, y0):

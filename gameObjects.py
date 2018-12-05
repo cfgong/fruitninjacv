@@ -61,7 +61,6 @@ class Text:
 
 class Level:
     def __init__(this, numFruits, pointsPerFruit, numBombs, numFrames):
-        this.levelNum = levelNum
         this.numFruits = numFruits
         this.pointsPerFruit = pointsPerFruit
         this.numBombs = numBombs
