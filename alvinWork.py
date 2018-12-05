@@ -109,7 +109,7 @@ while gotFrame and not gotHisto:
     # Then, pause for 10 ms to see if we entered an interrupt key or not
     key = cv2.waitKey(STALL)
     if key == ord('q'): # Exit on 'q'
-        gotFrame = False
+        break
     elif key == ord('h'): # Create skin histogram on 'h'
         histBits = aFD.makeHisto(frame, x0, y0)
         gotHisto = True
@@ -171,7 +171,7 @@ while gotFrame:
     
     # Then, pause for 10 ms to see if we entered an interrupt key or not
     if cv2.waitKey(STALL) == ord('q'): # Exit on q
-        gotFrame = False
+        break
 
 # Once an interrupt key is entered, or we fail to get another screen, 
 # we print some statements, release the video feed, and close the window.
