@@ -1,21 +1,19 @@
-# Fruit Ninja Computer Vision Game
+# Squares are Bombs!
+## Computer Vision Game
 
-[Brainstorming Google Doc](https://docs.google.com/document/d/1GhcITUZvlrR8IcTVUpZIBX7SQR-cOgQOoQSGIWA7bGs/edit)  
-[Finger Tracking Notes](https://docs.google.com/document/d/1NvPH3BRg6g0arzIMzZPWt8G3LTltkNTXXqGsy5T5Me4/edit)    
+Welcome to Squares are Bombs!  
+To play the game run: ```game.py``` or ```fruitNinja.py``` 
 
-FRUIT NINJA:
-- Need: 
-	- [Finger tracking](https://dev.to/amarlearning/finger-detection-and-tracking-using-opencv-and-python-586m)
-	- Gravity
-	- Fruits (and exploded bits of fruit)
-	- Object intersection detection
-	- Score-keeping
-- To do:
-	- Fruit/object generation and overlay (onto live feed)
-	- Finger tracking (implemented)
-	- Object intersection detection for fruit and fingertip (includes score keeping)
+Use your finger/ hand to hit the circles, avoid the bombs!  
+Press 'S' to select hand skin sample. Use cursor to draw a bounding box to select the skin.  
+Then, press 'ENTER' to begin game.  
 
-packages:
+```game.py``` uses skin detection and contours to get hand.  
+```fruitNinja.py``` uses skin detection.  
+
+Not all code is original. Online resources have been referenced.   
+
+Required packages:
 - cv2 (pip install opencv-python)
-- opencv-contrib (pip install opencv-contrib-python)
+- numpy (pip install numpy)
 
