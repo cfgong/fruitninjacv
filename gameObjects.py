@@ -12,7 +12,7 @@ import numpy
 GRAVITY = 4
 NUMFRUITS = 3
 FONT = cv2.FONT_HERSHEY_COMPLEX
-FONT_SIZE = 1.5
+FONT_SIZE = 0.7
 
 # These determine the positions to generate "exploded" bits of the fruit
 EXX = [1, 0.70711, 0, -0.70711, -1, -0.70711, 0, 0.70711]
