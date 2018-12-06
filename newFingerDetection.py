@@ -43,7 +43,7 @@ def getFingerTip(frame, min_YCrCb, max_YCrCb):
             for cval in c:
                 if cval[0, 1] < fingerTip[1]:
                     fingerTip = cval[0]
-            print(fingerTip)
+            # print(fingerTip)
             
             # draw the contour
             # cv2.drawContours(frame, contours, i, (0, 255, 0), 3)
@@ -67,17 +67,10 @@ def selectSkin(frame, skinSample, min_YCrCb, max_YCrCb):
         max_YCrCb = np.max(skinSample, axis = 1)[0] 
     return skinSample, min_YCrCb, max_YCrCb
 
-def exit(vidFeed):
-    print("exited the loop")
-    vidFeed.release()
-    print("released video feed")
-    cv2.destroyAllWindows() # For some reason python always crashes here
-
 """ ACTUAL GAME CODE STARTS HERE """
 if __name__ == "__main__":
     # We open a new window and open access to the video camera
     vidFeed = cv2.VideoCapture(0)
-    
     # If we have successfully connected to the webcam, we grab a frame
     if vidFeed.isOpened():
         gotFrame, frame = vidFeed.read()
@@ -97,13 +90,24 @@ if __name__ == "__main__":
     
     # keep track if game ended
     gameOver = False
+    exitGame = False
     
     # This is the setup time, when we have not yet gotten a skin sample
     while skinSample is None:
         frame = cv2.flip(frame, 1)
         # After displaying the frame, we grab a new frame from the video feed
         gotFrame, frame = vidFeed.read()
-        
+        if not gotFrame:
+            break
+        key = cv2.waitKey(STALL) & 0xFF
+        # select bounding box for skin sample
+        if key == ord("s"):
+            skinSample, min_YCrCb, max_YCrCb = selectSkin(frame, skinSample, min_YCrCb, max_YCrCb)
+        # quit
+        elif key == ord('q'): # Exit on q
+            gameOver = True
+            break
+            
         # write starting text
         Text((120, 20), GREEN, "Welcome to "+str(GAME_TITLE)).write(frame)
         Text((115, 45), GREEN, "Hit the circles, avoid the bombs!").write(frame)
@@ -113,14 +117,7 @@ if __name__ == "__main__":
         
         # Once all the fruits have been drawn on the frame, we display the frame
         cv2.imshow(GAME_TITLE, frame)
-        
-        key = cv2.waitKey(STALL) & 0xFF
-        # select bounding box for skin sample
-        if key == ord("s"):
-            skinSample, min_YCrCb, max_YCrCb = selectSkin(frame, skinSample, min_YCrCb, max_YCrCb)
-        # quit
-        elif key == ord('q'): # Exit on q
-            exit(vidFeed)
+
     
     # Here we instantiate our levels:
     levels = []
@@ -135,7 +132,7 @@ if __name__ == "__main__":
 
     # For each of the levels, we do game stuff
     for curLevel in range(len(levels)):
-        if gameOver: # if the game is over, we just break
+        if gameOver:
             break
         # We instantiate our game objects
         texts = []
@@ -171,8 +168,10 @@ if __name__ == "__main__":
             # After displaying the frame, we grab a new frame from the video feed
             gotFrame, frame = vidFeed.read()
             # Then, pause for 10 ms to see if we entered an interrupt key or not
-            if cv2.waitKey(STALL) == ord('q'): # Exit on q
-                exit(vidFeed)
+            key = cv2.waitKey(STALL) & 0xFF
+            if key == ord('q'): # Exit on q
+                gameOver = True
+                break
         
         levelFrames = 0
         
@@ -251,10 +250,13 @@ if __name__ == "__main__":
             
             # After displaying the frame, we grab a new frame from the video feed
             gotFrame, frame = vidFeed.read()
-            
+            key = cv2.waitKey(STALL) & 0xFF
             # Then, pause to see if we entered an interrupt key or not
-            if cv2.waitKey(STALL) == ord('q'): # Exit on q
-                exit(vidFeed)
+            if key == ord('q'): # Exit on q
+                exitGame = True
+                break
+        if exitGame:
+            break
     # just need to write text once
     if gameOver and skinSample is not None:
         frame = cv2.flip(frame, 1) # just need to flip the frame once
@@ -264,9 +266,11 @@ if __name__ == "__main__":
     # If the player loses and the game was actually started
     while gameOver and skinSample is not None: 
         cv2.imshow(GAME_TITLE, frame)
-        
-        if cv2.waitKey(STALL) == ord('q'): # Exit on q
-            exit(vidFeed)
+        key = cv2.waitKey(STALL) & 0xFF
+        if key == ord('q'): # Exit on q
             break
-            
-    exit(vidFeed)
+         
+    print("terminating program, quitting windows")
+    vidFeed.release()
+    cv2.waitKey(1)
+    cv2.destroyAllWindows()
