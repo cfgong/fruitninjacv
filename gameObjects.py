@@ -36,11 +36,6 @@ class Fruit:
         this.yPos += this.yVel
         this.yVel += GRAVITY
         
-        if this.color == (0, 0, 0):
-            this.color == (0, 0, 255)
-        elif this.color == (0, 0, 255):
-            this.color == (0, 0, 0)
-        
         return this.xPos >= 0 and this.xPos <= xBound and this.yPos <= yBound
     
     def explode(this, explosions):
@@ -55,6 +50,14 @@ class Fruit:
     def intersects(this, fingerTip):
         return (abs(fingerTip[0] - this.yPos) <= this.radius) and (abs(fingerTip[1] - this.xPos) <= this.radius)
     
+class Bomb(Fruit):
+    def __init__(this, radius, color, xPos, yPos, xVel, yVel):
+        Fruit.__init__(this, radius, color, xPos, yPos, xVel, yVel)
+    
+    def draw(this, frame):
+        cv2.rectangle(frame, (this.xPos - this.radius, this.yPos - this.radius), (this.xPos + this.radius, this.yPos + this.radius), this.color, -1)
+        cv2.putText(frame, "bomb",(this.xPos - this.radius, this.yPos - this.radius), FONT, FONT_SIZE, (255, 255, 255), 2, cv2.LINE_AA)
+
 class Text:
     def __init__(this, pos, color, text):
         this.pos = pos
@@ -73,7 +76,7 @@ class Level:
         
 def randomFruit(x0, y0):
     # Generates reasonable random values for the initialization of each fruit
-    radius = numpy.random.randint(20, 70)
+    radius = numpy.random.randint(30, 70)
     color = (numpy.random.randint(255), numpy.random.randint(255), numpy.random.randint(255))
     xPos = numpy.random.randint(x0)
     yPos = y0
@@ -87,4 +90,4 @@ def randomBomb(x0, y0):
     yPos = y0
     xVel = int(((x0/2)-xPos)//10)
     yVel = -numpy.random.randint(y0//20, y0//10)
-    return Fruit(50, (0, 0, 0), xPos, yPos, xVel, yVel)
+    return Bomb(50, (0, 0, 0), xPos, yPos, xVel, yVel)

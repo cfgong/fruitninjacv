@@ -17,7 +17,7 @@ STALL = 5
 LEVEL_START_PAUSE = 10
 
 # We open a new window and open access to the video camera
-cv2.namedWindow("Fruit Ninja")
+cv2.namedWindow("Squares are Bombs!")
 vidFeed = cv2.VideoCapture(0)
 
 # If we have successfully connected to the webcam, we grab a frame
@@ -41,7 +41,7 @@ while gotFrame and not gotHisto:
     aFD.drawRect(frame, x0, y0)
         
     # Once all the fruits have been drawn on the frame, we display the frame
-    cv2.imshow("Fruit Ninja", frame)
+    cv2.imshow("Squares are Bombs!", frame)
         
     # Then, pause for 10 ms to see if we entered an interrupt key or not
     key = cv2.waitKey(STALL)
@@ -96,8 +96,9 @@ for curLevel in range(len(levels)):
         frame = cv2.flip(frame, 1)
         
         gO.Text((int(x0/2)-100, int(y0/2)-25), (0, 0, 0), "LEVEL "+str(curLevel)).write(frame)
+        gO.Text((int(x0/2)-200, int(y0/2)-75), (0, 0, 0), "Squares are bombs!").write(frame)
         
-        cv2.imshow("Fruit Ninja", frame)
+        cv2.imshow("Squares are Bombs!", frame)
         startPause += 1
         
         # After displaying the frame, we grab a new frame from the video feed
@@ -176,7 +177,7 @@ for curLevel in range(len(levels)):
         cv2.circle(frame,(fingerTip[1], fingerTip[0]), 10, (0,255,0), -1)
     
         # Once all the fruits have been drawn on the frame, we display the frame
-        cv2.imshow("Fruit Ninja", frame)
+        cv2.imshow("Squares are Bombs!", frame)
         
         # Increment the frame counter
         levelFrames += 1
@@ -199,8 +200,8 @@ for curLevel in range(len(levels)):
             text.write(frame)
         
         # Writes the game over message
-        gO.Text((int(x0/2)-100, int(y0/2)-25), (0, 0, 0), "GAME OVER").write(frame)
-        cv2.imshow("Fruit Ninja", frame)
+        gO.Text((int(x0/2)+10, int(y0/2)-25), (0, 0, 0), "GAME OVER").write(frame)
+        cv2.imshow("Squares are Bombs!", frame)
         
         if cv2.waitKey(STALL) == ord('q'): # Exit on q
             break
