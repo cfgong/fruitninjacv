@@ -39,7 +39,7 @@ def getFingerTip(frame, min_YCrCb, max_YCrCb):
     for i, c in enumerate(contours):
         area = cv2.contourArea(c)
         # set some kind of threhold for area
-        if area > 100:
+        if area > 50:
             for cval in c:
                 if cval[0, 1] < fingerTip[1]:
                     fingerTip = cval[0]
@@ -121,10 +121,10 @@ if __name__ == "__main__":
     
     # Here we instantiate our levels:
     levels = []
-    levels.append(Level(1, 2, 0, 500)) # numFruits, pointsPerFruit, numBombs, numFrame
-    levels.append(Level(3, 5, 0, 500))
-    levels.append(Level(3, 5, 1, 500))
-    levels.append(Level(5, 7, 3, 500))
+    levels.append(Level(1, 2, 0, 300)) # numFruits, pointsPerFruit, numBombs, numFrame
+    levels.append(Level(3, 5, 0, 300))
+    levels.append(Level(3, 5, 1, 300))
+    levels.append(Level(5, 7, 3, 300))
     
     # We instantiate our score and our lives
     score = 0
