@@ -204,43 +204,7 @@ for curLevel in range(len(levels)):
         cv2.imshow("Squares are Bombs!", frame)
         
         if cv2.waitKey(STALL) == ord('q'): # Exit on q
-            break
-    
-    # Otherwise, we complete the falling animations and continue onto the next level
-    while fruits and bombs and explodedBits and gotFrame:
-        # Flips the frame horizontally so it's a mirror image. Makes sense while
-        # facing the screen.
-        frame = cv2.flip(frame, 1)
-        
-        # Write all of our text on the screen
-        for text in texts:
-            text.write(frame)
-            
-        # Display the lives we have
-        for count in range(lives):
-            cv2.circle(frame, (175 + count*50, 35), 20, (0, 0, 255), -1)
-        
-        # Draws all the falling pieces
-        for fruit in fruits:
-            fruit.draw(frame)
-            if not fruit.doPhysics(x0, y0):
-                fruits.remove(fruit)
-
-        for bomb in bombs:
-            bomb.draw(frame)
-            if not bomb.doPhysics(x0, y0):
-                bombs.remove(bomb)
-
-        for exBit in explodedBits:
-            exBit.draw(frame)
-            if not exBit.doPhysics(x0, y0):
-                explodedBits.remove(exBit)
-        
-        # After displaying the frame, we grab a new frame from the video feed
-        gotFrame, frame = vidFeed.read()
-        
-        # Then, pause to see if we entered an interrupt key or not
-        if cv2.waitKey(STALL) == ord('q'): # Exit on q
+            gotFrame = False
             break
     
 # Once an interrupt key is entered, or we fail to get another screen, 
