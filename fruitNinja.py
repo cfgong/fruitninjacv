@@ -212,7 +212,7 @@ for curLevel in range(len(levels)):
 print("exited the loop")
 vidFeed.release()
 print("released video feed")
-cv2.destroyAllWindows # For some reason python always crashes here
+cv2.destroyAllWindows() # For some reason python always crashes here
 
 
 

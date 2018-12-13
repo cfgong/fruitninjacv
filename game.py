@@ -46,7 +46,7 @@ def getFingerTip(frame, min_YCrCb, max_YCrCb):
             # print(fingerTip)
             
             # draw the contour
-            # cv2.drawContours(frame, contours, i, (0, 255, 0), 3)
+            cv2.drawContours(frame, contours, i, (0, 255, 0), 3)
             
     return fingerTip
 
